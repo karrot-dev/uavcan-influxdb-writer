@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import sys
 import uavcan
 import threading
@@ -5,9 +7,15 @@ import time
 import configparser
 import influxdb
 import os
+import threading
+
+uavcan.load_dsdl(
+    os.path.join(os.path.dirname(__file__), 'dsdl_files', 'homeautomation'))
 
 
-def main(config_filename):
+def main(config_filename, *args):
+
+  node_ids = set()  # we keep a cache of them so we can request node info
 
   config = read_config(config_filename)
 
@@ -40,20 +48,43 @@ def main(config_filename):
   for uavcan_type in uavcan_types:
     node.add_handler(
         uavcan_type,
-        handle_event,
+        record_event_data,
         influxdb_client=influxdb_client,
     )
 
+  node.add_handler(uavcan.protocol.NodeStatus,
+                   lambda event: node_ids.add(event.transfer.source_node_id))
+
+  node.add_handler(uavcan.protocol.RestartNode, restart_request)
+
   node.mode = uavcan.protocol.NodeStatus().MODE_OPERATIONAL
+  node.health = uavcan.protocol.NodeStatus().HEALTH_OK
 
   print('started')
 
   while True:
     try:
       node.spin(1)
-      get_node_infos(node, influxdb_client)
+      get_node_infos(node, node_ids, influxdb_client)
+      receive_node_info(config.getint('node', 'id'), node_info, influxdb_client)
     except uavcan.UAVCANException as ex:
       print('Node error:', ex)
+
+
+def restart():
+  time.sleep(0.5)  # give it a moment to send the response
+  print('restarting')
+  sys.stdout.flush()
+  os.execv(__file__, sys.argv)
+
+
+def restart_request(event):
+
+  if event.request.magic_number != event.request.MAGIC_NUMBER:
+    return uavcan.protocol.RestartNode.Response(ok=False)
+
+  threading.Thread(target=restart, daemon=True).start()
+  return uavcan.protocol.RestartNode.Response(ok=True)
 
 
 def read_config(filename):
@@ -63,12 +94,11 @@ def read_config(filename):
   return config
 
 
-def receive_node_info(event, influxdb_client):
+def receive_node_info(node_id, node_info, influxdb_client):
 
   # node info comes with node status too
 
-  fields = extract_fields(event.transfer.payload.status._fields)
-  node_info = event.transfer.payload
+  fields = extract_fields(node_info.status._fields)
 
   fields.update({
       'name': str(node_info.name),
@@ -79,18 +109,24 @@ def receive_node_info(event, influxdb_client):
   influxdb_client.write_points([{
       "measurement": 'uavcan.protocol.NodeInfo',
       "tags": {
-          "node_id": event.transfer.source_node_id,
+          "node_id": node_id,
       },
       "fields": fields,
   }])
 
 
-def get_node_infos(node, influxdb_client):
-  for node_id in [2, 3]:  # TODO: get/keep a list of node ids
+def get_node_infos(node, node_ids, influxdb_client):
+
+  def handle_event_for(node_id, event):
+    if not event:
+      return
+    return receive_node_info(node_id, event.transfer.payload, influxdb_client),
+
+  for node_id in node_ids:
     node.request(
         uavcan.protocol.GetNodeInfo.Request(),
         node_id,
-        lambda event: receive_node_info(event, influxdb_client),
+        lambda event, node_id=node_id: handle_event_for(node_id, event),
     )
 
 
@@ -108,7 +144,7 @@ def extract_fields(message_fields):
   return fields
 
 
-def handle_event(event, influxdb_client=None):
+def record_event_data(event, influxdb_client=None):
   if influxdb_client is None:
     raise Exception('please pass in a influxdb_client option')
 
@@ -125,4 +161,4 @@ def handle_event(event, influxdb_client=None):
 
 
 if __name__ == '__main__':
-  main(sys.argv[1])
+  main(*sys.argv[1:])

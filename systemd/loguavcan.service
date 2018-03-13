@@ -1,0 +1,14 @@
+[Unit]
+Description=Log uavcan to influxDB
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 -u run.py config.ini
+WorkingDirectory=/home/pi/thingsthatreadssomenumbersfromsomewhere
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=pi
+
+[Install]
+WantedBy=multi-user.target

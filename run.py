@@ -7,7 +7,6 @@ import time
 import configparser
 import influxdb
 import os
-import threading
 
 uavcan.load_dsdl(
     os.path.join(os.path.dirname(__file__), 'dsdl_files', 'homeautomation'))

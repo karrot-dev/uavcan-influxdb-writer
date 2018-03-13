@@ -37,3 +37,12 @@ Format code (`pip install yapf` first):
 ```
 yapf --style chromium -i run.py
 ```
+
+## TODO
+
+- [ ] tolerance if can interface is missing
+- [ ] tolerance if influxdb is not available
+- [ ] gracefully close the node when it restarts/exits
+- [ ] don't request node info all the time, cache it and then add it into incoming node status updates, maybe periodically get it fresh again
+- [ ] report health information if influxdb is unavailable
+- [ ] make sure the restarting works when run in a systemd environment

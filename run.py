@@ -16,7 +16,7 @@ uavcan.load_dsdl(
 
 def main(config_filename, *args):
 
-  node_infos = defaultdict(lambda _: dict(last_seen = None, last_info = None))
+  node_infos = defaultdict(lambda: dict(last_seen = None, last_info = None))
   config = read_config(config_filename)
 
   influxdb_client = influxdb.InfluxDBClient(
@@ -127,8 +127,12 @@ def get_node_infos(node, node_infos, influxdb_client):
     return receive_node_info(node_id, event.transfer.payload, influxdb_client),
 
   now = datetime.datetime.now()
-  for node_id in node_infos:
-    if (now - node_id['last_seen']).total_seconds() < 5 and (node_id['last_info'] is None or (now - node_id['last_info']).total_seconds() > 3600):
+  for node_id, node_info in node_infos.items():
+    if not isinstance(node_info['last_seen'], datetime.datetime):
+      continue
+    last_seen_ago = now - node_info['last_seen']
+    last_info_ago = now - node_info['last_info'] if isinstance(node_info['last_info'], datetime.datetime) else None
+    if last_seen_ago.total_seconds() < 5 and (last_info_ago is None or last_info_ago.total_seconds() > 3600):
       node.request(
           uavcan.protocol.GetNodeInfo.Request(),
           node_id,

@@ -4,9 +4,11 @@ import sys
 import uavcan
 import threading
 import time
+import datetime
 import configparser
 import influxdb
 import os
+from collections import defaultdict
 
 uavcan.load_dsdl(
     os.path.join(os.path.dirname(__file__), 'dsdl_files', 'homeautomation'))
@@ -14,8 +16,7 @@ uavcan.load_dsdl(
 
 def main(config_filename, *args):
 
-  node_ids = set()  # we keep a cache of them so we can request node info
-
+  node_infos = defaultdict(dict(last_seen = None, last_info = None))
   config = read_config(config_filename)
 
   influxdb_client = influxdb.InfluxDBClient(
@@ -51,9 +52,10 @@ def main(config_filename, *args):
         influxdb_client=influxdb_client,
     )
 
-  node.add_handler(uavcan.protocol.NodeStatus,
-                   lambda event: node_ids.add(event.transfer.source_node_id))
+  def node_status_cb(event):
+    node_infos[event.transfer.source_node_id]['last_seen'] = datetime.datetime.now()
 
+  node.add_handler(uavcan.protocol.NodeStatus, node_status_cb)
   node.add_handler(uavcan.protocol.RestartNode, restart_request)
 
   node.mode = uavcan.protocol.NodeStatus().MODE_OPERATIONAL
@@ -64,7 +66,7 @@ def main(config_filename, *args):
   while True:
     try:
       node.spin(1)
-      get_node_infos(node, node_ids, influxdb_client)
+      get_node_infos(node, node_infos, influxdb_client)
       receive_node_info(config.getint('node', 'id'), node_info, influxdb_client)
     except uavcan.UAVCANException as ex:
       print('Node error:', ex)
@@ -114,19 +116,24 @@ def receive_node_info(node_id, node_info, influxdb_client):
   }])
 
 
-def get_node_infos(node, node_ids, influxdb_client):
+def get_node_infos(node, node_infos, influxdb_client):
 
   def handle_event_for(node_id, event):
     if not event:
       return
+      
+    node_infos[node_id]['info'] = event.transfer.payload
+    node_infos[node_id]['last_info'] = datetime.datetime.now()
     return receive_node_info(node_id, event.transfer.payload, influxdb_client),
 
-  for node_id in node_ids:
-    node.request(
-        uavcan.protocol.GetNodeInfo.Request(),
-        node_id,
-        lambda event, node_id=node_id: handle_event_for(node_id, event),
-    )
+  now = datetime.datetime.now()
+  for node_id in node_infos:
+    if (now - node_id['last_seen']).total_seconds() < 5 and (node_id['last_info'] is None or (now - node_id['last_info']).total_seconds() > 3600):
+      node.request(
+          uavcan.protocol.GetNodeInfo.Request(),
+          node_id,
+          lambda event, node_id=node_id: handle_event_for(node_id, event),
+      )
 
 
 def extract_fields(message_fields):

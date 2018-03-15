@@ -16,7 +16,7 @@ uavcan.load_dsdl(
 
 def main(config_filename, *args):
 
-  node_infos = defaultdict(dict(last_seen = None, last_info = None))
+  node_infos = defaultdict(lambda _: dict(last_seen = None, last_info = None))
   config = read_config(config_filename)
 
   influxdb_client = influxdb.InfluxDBClient(
@@ -121,7 +121,7 @@ def get_node_infos(node, node_infos, influxdb_client):
   def handle_event_for(node_id, event):
     if not event:
       return
-      
+
     node_infos[node_id]['info'] = event.transfer.payload
     node_infos[node_id]['last_info'] = datetime.datetime.now()
     return receive_node_info(node_id, event.transfer.payload, influxdb_client),

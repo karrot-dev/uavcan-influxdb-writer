@@ -24,7 +24,6 @@ def influxdb_writer(queue, influxdb_client):
       queue.task_done()
 
     influxdb_client.write_points(buffer)
-    print('send batch of', len(buffer))
     queue.task_done()
     time.sleep(1)
 

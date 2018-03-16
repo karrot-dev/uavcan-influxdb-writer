@@ -12,12 +12,12 @@ import queue
 import signal
 from collections import defaultdict
 
+running = True
 
-def shutdown():
+def shutdown(signal, frame):
+  global running
   running = False
 
-
-running = True
 
 signal.signal(signal.SIGTERM, shutdown)
 
@@ -25,20 +25,20 @@ uavcan.load_dsdl(
     os.path.join(os.path.dirname(__file__), 'dsdl_files', 'homeautomation'))
 
 
-def influxdb_writer(queue, influxdb_client):
+def influxdb_writer(q, influxdb_client):
   while running:
     buffer = list()
     try:
-      buffer.append(queue.get(timeout=2))
+      buffer.append(q.get(timeout=2))
     except queue.Empty:
       continue
 
-    while not queue.empty():
-      buffer.append(queue.get_nowait())
-      queue.task_done()
+    while not q.empty():
+      buffer.append(q.get_nowait())
+      q.task_done()
 
     influxdb_client.write_points(buffer)
-    queue.task_done()
+    q.task_done()
     time.sleep(1)
 
 

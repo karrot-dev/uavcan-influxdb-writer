@@ -92,7 +92,7 @@ def main(config_filename, *args):
   influxdb_thread = threading.Thread(
       target=influxdb_writer,
       kwargs={
-          'queue': influxdb_queue,
+          'q': influxdb_queue,
           'influxdb_client': influxdb_client
       })
   influxdb_thread.start()

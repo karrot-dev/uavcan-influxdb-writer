@@ -1,2 +1,3 @@
 git+https://github.com/UAVCAN/pyuavcan.git
 influxdb
+yapf

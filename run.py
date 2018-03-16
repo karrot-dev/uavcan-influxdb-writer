@@ -9,16 +9,30 @@ import configparser
 import influxdb
 import os
 import queue
+import signal
 from collections import defaultdict
+
+
+def shutdown():
+  running = False
+
+
+running = True
+
+signal.signal(signal.SIGTERM, shutdown)
 
 uavcan.load_dsdl(
     os.path.join(os.path.dirname(__file__), 'dsdl_files', 'homeautomation'))
 
 
 def influxdb_writer(queue, influxdb_client):
-  while True:
+  while running:
     buffer = list()
-    buffer.append(queue.get())
+    try:
+      buffer.append(queue.get(timeout=2))
+    except queue.Empty:
+      continue
+
     while not queue.empty():
       buffer.append(queue.get_nowait())
       queue.task_done()
@@ -27,9 +41,9 @@ def influxdb_writer(queue, influxdb_client):
     queue.task_done()
     time.sleep(1)
 
-def main(config_filename, *args):
 
-  node_infos = defaultdict(lambda: dict(last_seen = None, last_info = None))
+def main(config_filename, *args):
+  node_infos = defaultdict(lambda: dict(last_seen=None, last_info=None))
   config = read_config(config_filename)
   influxdb_queue = queue.Queue()
 
@@ -75,18 +89,25 @@ def main(config_filename, *args):
   node.mode = uavcan.protocol.NodeStatus().MODE_OPERATIONAL
   node.health = uavcan.protocol.NodeStatus().HEALTH_OK
 
-  influxdb_thread = threading.Thread(target=influxdb_writer, kwargs={'queue': influxdb_queue, 'influxdb_client': influxdb_client})
+  influxdb_thread = threading.Thread(
+      target=influxdb_writer,
+      kwargs={
+          'queue': influxdb_queue,
+          'influxdb_client': influxdb_client
+      })
   influxdb_thread.start()
 
   print('started')
 
-  while True:
+  while running:
     try:
       node.spin(1)
       get_node_infos(node, node_infos, influxdb_queue)
       receive_node_info(config.getint('node', 'id'), node_info, influxdb_queue)
     except uavcan.UAVCANException as ex:
       print('Node error:', ex)
+
+  node.close()
 
 
 def restart():
@@ -149,8 +170,10 @@ def get_node_infos(node, node_infos, influxdb_queue):
     if not isinstance(node_info['last_seen'], datetime):
       continue
     last_seen_ago = now - node_info['last_seen']
-    last_info_ago = now - node_info['last_info'] if isinstance(node_info['last_info'], datetime) else None
-    if last_seen_ago.total_seconds() < 5 and (last_info_ago is None or last_info_ago.total_seconds() > 3600):
+    last_info_ago = now - node_info['last_info'] if isinstance(
+        node_info['last_info'], datetime) else None
+    if last_seen_ago.total_seconds() < 5 and (
+        last_info_ago is None or last_info_ago.total_seconds() > 3600):
       node.request(
           uavcan.protocol.GetNodeInfo.Request(),
           node_id,
@@ -180,12 +203,16 @@ def record_event_data(event, influxdb_queue=None):
 
   if len(fields) > 0:
     influxdb_queue.put({
-        "measurement": event.message._type.full_name,
+        "measurement":
+            event.message._type.full_name,
         "tags": {
             "node_id": event.transfer.source_node_id,
         },
-        "time": time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime(event.transfer.ts_real)),
-        "fields": fields,
+        "time":
+            time.strftime('%Y-%m-%dT%H:%M:%SZ',
+                          time.gmtime(event.transfer.ts_real)),
+        "fields":
+            fields,
     })
 
 

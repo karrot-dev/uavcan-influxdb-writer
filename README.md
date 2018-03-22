@@ -42,7 +42,7 @@ yapf --style chromium -i run.py
 
 In the deployment where this tool was written for, we use [Cannelloni](https://github.com/mguentner/cannelloni) to be able to share one CAN adapter in the network (and to have the bus available without connecting something physically to your computer).
 
-To use this (with TCP for reliability over wifi), do
+To use this (with TCP for reliability over wifi), you need to have `lksctp-tools` package installed before building `cannelloni`. Then, do
 
 (server side, e.g. raspberry pi)
 ```

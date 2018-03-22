@@ -38,6 +38,25 @@ Format code (`pip install yapf` first):
 yapf --style chromium -i run.py
 ```
 
+## Cannelloni for using network CAN adapter
+
+In the deployment where this tool was written for, we use [Cannelloni](https://github.com/mguentner/cannelloni) to be able to share one CAN adapter in the network (and to have the bus available without connecting something physically to your computer).
+
+To use this (with TCP for reliability over wifi), do
+
+(server side, e.g. raspberry pi)
+```
+cannelloni -S s -I can0 -t 10000
+```
+
+(client side, e.g. your computer, exchange the IP address of the one of the server)
+```
+sudo modprobe vcan
+sudo ip link add name vcan0 type vcan
+sudo ip link set dev vcan0 up
+cannelloni -S c -R 192.168.178.85 -t 10000
+```
+
 ## TODO
 
 - [ ] tolerance if can interface is missing

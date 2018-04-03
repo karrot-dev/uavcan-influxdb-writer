@@ -210,7 +210,7 @@ def record_event_data(event, influxdb_queue=None):
             "node_id": event.transfer.source_node_id,
         },
         "time":
-            time.strftime('%Y-%m-%dT%H:%M:%SZ',
+            time.strftime('%Y-%m-%dT%H:%M:%S.%f%Z',
                           time.gmtime(event.transfer.ts_real)),
         "fields":
             fields,

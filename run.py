@@ -71,6 +71,7 @@ def main(config_filename, *args):
       uavcan.thirdparty.homeautomation.Environment,
       uavcan.thirdparty.homeautomation.ConductionSensor,
       uavcan.thirdparty.homeautomation.PumpStatus,
+      uavcan.thirdparty.homeautomation.Meter,
   ]
 
   for uavcan_type in uavcan_types:

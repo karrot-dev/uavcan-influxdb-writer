@@ -209,7 +209,7 @@ def record_event_data(event, influxdb_queue=None):
         "tags": {
             "node_id": event.transfer.source_node_id,
         },
-        "time": int(round(event.transfer.ts_real*1000),
+        "time": int(round(event.transfer.ts_real*1000)),
         "fields":
             fields,
     })

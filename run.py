@@ -37,7 +37,7 @@ def influxdb_writer(q, influxdb_client):
       buffer.append(q.get_nowait())
       q.task_done()
 
-    influxdb_client.write_points(buffer)
+    influxdb_client.write_points(buffer, time_precision="ms")
     q.task_done()
     time.sleep(1)
 
@@ -209,8 +209,7 @@ def record_event_data(event, influxdb_queue=None):
         "tags": {
             "node_id": event.transfer.source_node_id,
         },
-        "time":
-            datetime.fromtimestamp(event.transfer.ts_real).strftime('%Y-%m-%dT%H:%M:%S.%f%Z'),
+        "time": int(round(event.transfer.ts_real*1000),
         "fields":
             fields,
     })

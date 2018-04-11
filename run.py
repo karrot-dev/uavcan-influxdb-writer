@@ -206,7 +206,7 @@ def record_event_data(event, influxdb_queue=None):
     if event.message._type.full_name == 'homeautomation.Obis':
       # turn Obis code into a tag
       code = event.message._fields.get('code')
-      joined_code = '.'.join(code)
+      joined_code = '.'.join([str(x) for x in code])
       if code:
         del event.message._fields['code']
         fields = extract_fields(event.message._fields)

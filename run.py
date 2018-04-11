@@ -203,16 +203,35 @@ def record_event_data(event, influxdb_queue=None):
   fields = extract_fields(event.message._fields)
 
   if len(fields) > 0:
-    influxdb_queue.put({
-        "measurement":
-            event.message._type.full_name,
-        "tags": {
-            "node_id": event.transfer.source_node_id,
-        },
-        "time": int(round(event.transfer.ts_real*1000)),
-        "fields":
-            fields,
-    })
+    if event.message._type.full_name == 'homeautomation.Obis':
+      # turn Obis code into a tag
+      code = event.message._fields.get('code')
+      joined_code = '.'.join(code)
+      if code:
+        del event.message._fields['code']
+        fields = extract_fields(event.message._fields)
+
+      write_to_influxdb(event, fields, influxdb_queue, extra_tags={'code': joined_code})
+    else:
+      write_to_influxdb(event, fields, influxdb_queue)
+
+
+def write_to_influxdb(event, fields, influxdb_queue, **kwargs):
+    data = {
+      "measurement":
+          event.message._type.full_name,
+      "tags": {
+          "node_id": event.transfer.source_node_id,
+      },
+      "time": int(round(event.transfer.ts_real*1000)),
+      "fields":
+          fields,
+    }
+    extra_tags = kwargs.get('extra_tags')
+    if extra_tags:
+      data['tags'].update(extra_tags)
+
+    influxdb_queue.put(data)
 
 
 if __name__ == '__main__':

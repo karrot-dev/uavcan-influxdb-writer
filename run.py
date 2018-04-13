@@ -109,7 +109,7 @@ def main(config_filename, *args):
       print('Node error:', ex)
 
   def publish_current_time():
-    microseconds = round(time.time() * 1_000_000)
+    microseconds = round(time.time() * 1000000)
     msg = uavcan.thirdparty.homeautomation.Time.KeyValue(key='timestamp', value=microseconds)
     node.broadcast(msg, priority=uavcan.TRANSFER_PRIORITY_LOWEST)
 

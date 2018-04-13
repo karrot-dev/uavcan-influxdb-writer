@@ -103,7 +103,8 @@ def main(config_filename, *args):
   def publish_current_time():
     microseconds = round(time.time() * 1000000)
     print('publishing time', microseconds)
-    msg = uavcan.Timestamp(usec=microseconds)
+    Timestamp = uavcan.TYPENAMES['uavcan.Timestamp']
+    msg = Timestamp(usec=microseconds)
     node.broadcast(msg)
 
   node.periodic(1, publish_current_time)

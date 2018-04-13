@@ -102,7 +102,7 @@ def main(config_filename, *args):
 
   def publish_current_time():
     microseconds = round(time.time() * 1000000)
-    msg = uavcan.thirdparty.homeautomation.Time(key='timestamp', value=microseconds)
+    msg = uavcan.thirdparty.homeautomation.Time(key='usec', value=microseconds)
     node.broadcast(msg, priority=uavcan.TRANSFER_PRIORITY_LOWEST)
 
   node.periodic(1, publish_current_time)

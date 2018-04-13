@@ -1,1 +1,1 @@
-uavcan.Timestamp timestamp
+uint56 usec

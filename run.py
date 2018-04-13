@@ -100,6 +100,13 @@ def main(config_filename, *args):
 
   print('started')
 
+  def publish_current_time():
+    microseconds = round(time.time() * 1000000)
+    msg = uavcan.thirdparty.homeautomation.Time(key='timestamp', value=microseconds)
+    node.broadcast(msg, priority=uavcan.TRANSFER_PRIORITY_LOWEST)
+
+  node.periodic(1, publish_current_time)
+
   while running:
     try:
       node.spin(1)
@@ -107,13 +114,6 @@ def main(config_filename, *args):
       receive_node_info(config.getint('node', 'id'), node_info, influxdb_queue)
     except uavcan.UAVCANException as ex:
       print('Node error:', ex)
-
-  def publish_current_time():
-    microseconds = round(time.time() * 1000000)
-    msg = uavcan.thirdparty.homeautomation.Time.KeyValue(key='timestamp', value=microseconds)
-    node.broadcast(msg, priority=uavcan.TRANSFER_PRIORITY_LOWEST)
-
-  node.periodic(1, publish_current_time)
 
   node.close()
 

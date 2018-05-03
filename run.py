@@ -71,7 +71,7 @@ def main(config_filename, *args):
       uavcan.thirdparty.homeautomation.EventCount,
       uavcan.thirdparty.homeautomation.Environment,
       uavcan.thirdparty.homeautomation.ConductionSensor,
-      uavcan.thirdparty.homeautomation.PumpStatus,
+      uavcan.thirdparty.homeautomation.WaterRefillStatus,
       uavcan.thirdparty.homeautomation.Obis,
   ]
 
@@ -106,7 +106,6 @@ def main(config_filename, *args):
     o.lat='51.3699'
     o.long='12.7437'
     s=ephem.Sun()
-    s.compute()
     daylight = o.next_setting(s) < o.next_rising(s)
     microseconds = round(time.time() * 1000000)
     msg = uavcan.thirdparty.homeautomation.Time(usec=microseconds, daylight=daylight)

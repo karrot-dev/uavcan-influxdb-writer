@@ -10,6 +10,7 @@ import influxdb
 import os
 import queue
 import signal
+import ephem
 from collections import defaultdict
 
 running = True
@@ -101,8 +102,14 @@ def main(config_filename, *args):
   print('started')
 
   def publish_current_time():
+    o=ephem.Observer()
+    o.lat='51.3699'
+    o.long='12.7437'
+    s=ephem.Sun()
+    s.compute()
+    daylight = o.next_setting(s) < o.next_rising(s)
     microseconds = round(time.time() * 1000000)
-    msg = uavcan.thirdparty.homeautomation.Time(usec=microseconds)
+    msg = uavcan.thirdparty.homeautomation.Time(usec=microseconds, daylight=daylight)
     node.broadcast(msg)
 
   node.periodic(1, publish_current_time)

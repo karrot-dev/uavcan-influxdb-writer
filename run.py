@@ -71,8 +71,8 @@ def main(config_filename, *args):
       uavcan.thirdparty.homeautomation.EventCount,
       uavcan.thirdparty.homeautomation.Environment,
       uavcan.thirdparty.homeautomation.ConductionSensor,
-      uavcan.thirdparty.homeautomation.WaterRefillStatus,
       uavcan.thirdparty.homeautomation.Obis,
+      uavcan.thirdparty.homeautomation.GreywaterPumpStatus,
   ]
 
   for uavcan_type in uavcan_types:

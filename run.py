@@ -106,7 +106,7 @@ def main(config_filename, *args):
     o.lat='51.3699'
     o.long='12.7437'
     s=ephem.Sun()
-    daylight = o.next_setting(s) < o.next_rising(s)
+    daylight = (o.next_setting(s) + ephem.hour) < o.next_rising(s)
     microseconds = round(time.time() * 1000000)
     msg = uavcan.thirdparty.homeautomation.Time(usec=microseconds, daylight=daylight)
     node.broadcast(msg)

@@ -73,6 +73,7 @@ def main(config_filename, *args):
       uavcan.thirdparty.homeautomation.ConductionSensor,
       uavcan.thirdparty.homeautomation.Obis,
       uavcan.thirdparty.homeautomation.GreywaterPumpStatus,
+      uavcan.thirdparty.homeautomation.HeaterStatus,
   ]
 
   for uavcan_type in uavcan_types:

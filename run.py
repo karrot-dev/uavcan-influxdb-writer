@@ -74,6 +74,7 @@ def main(config_filename, *args):
       uavcan.thirdparty.homeautomation.Obis,
       uavcan.thirdparty.homeautomation.GreywaterPumpStatus,
       uavcan.thirdparty.homeautomation.HeaterStatus,
+      uavcan.thirdparty.homeautomation.BathroomStatus,
   ]
 
   for uavcan_type in uavcan_types:
@@ -202,6 +203,8 @@ def extract_fields(message_fields):
 
   for key, value in message_fields.items():
     if isinstance(value, uavcan.transport.PrimitiveValue):
+      if isinstance(value.value, bool):
+          fields[key + '_int'] = int(value.value)
       fields[key] = value.value
     elif isinstance(value, uavcan.transport.ArrayValue):
       for idx, array_value in enumerate(value):

@@ -54,7 +54,7 @@ cannelloni -S s -I can0 -t 10000
 sudo modprobe vcan
 sudo ip link add name vcan0 type vcan
 sudo ip link set dev vcan0 up
-cannelloni -S c -R 192.168.178.85 -t 10000
+cannelloni -S c -R 192.168.178.164 -t 10000
 ```
 
 ## TODO

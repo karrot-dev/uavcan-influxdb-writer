@@ -1,0 +1,5 @@
+# last version to support UAVCAN v0
+-e git://github.com/UAVCAN/pyuavcan.git@1.0.0.dev32#egg=uavcan
+influxdb
+yapf
+pyephem

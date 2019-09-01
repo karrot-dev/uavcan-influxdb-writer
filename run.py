@@ -39,9 +39,14 @@ def influxdb_writer(q, influxdb_client):
       q.task_done()
 
     try:
-      influxdb_client.write_points(buffer, time_precision="ms")
+      influxdb_client.write_points(
+        buffer,
+        time_precision="ms",
+        batch_size=200,
+      )
     except influxdb.exceptions.InfluxDBServerError as e:
       print(e)
+
     q.task_done()
     time.sleep(1)
 

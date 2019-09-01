@@ -38,7 +38,10 @@ def influxdb_writer(q, influxdb_client):
       buffer.append(q.get_nowait())
       q.task_done()
 
-    influxdb_client.write_points(buffer, time_precision="ms")
+    try:
+      influxdb_client.write_points(buffer, time_precision="ms")
+    except influxdb.exceptions.InfluxDBServerError as e:
+      print(e)
     q.task_done()
     time.sleep(1)
 
@@ -54,6 +57,8 @@ def main(config_filename, *args):
       config.get('influxdb', 'username'),
       config.get('influxdb', 'password'),
       config.get('influxdb', 'database'),
+      timeout=5,
+      retries=5,
   )
   influxdb_client.create_database(config.get('influxdb', 'database'))
 

@@ -7,10 +7,9 @@
 -e git+git://github.com/UAVCAN/pyuavcan.git@1.0.0.dev32#egg=uavcan
 certifi==2019.6.16        # via requests
 chardet==3.0.4            # via requests
-ephem==3.7.7.0            # via pyephem
+ephem==3.7.7.0
 idna==2.8                 # via requests
 influxdb==5.2.3
-pyephem==3.7.7.0
 python-dateutil==2.8.0    # via influxdb
 pytz==2019.2              # via influxdb
 requests==2.22.0          # via influxdb

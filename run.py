@@ -85,6 +85,7 @@ def main(config_filename, *args):
       uavcan.thirdparty.homeautomation.GreywaterPumpStatus,
       uavcan.thirdparty.homeautomation.HeaterStatus,
       uavcan.thirdparty.homeautomation.BathroomStatus,
+      uavcan.thirdparty.homeautomation.BoilerStatus,
   ]
 
   for uavcan_type in uavcan_types:

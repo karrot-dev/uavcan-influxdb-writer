@@ -11,6 +11,7 @@ import os
 import queue
 import signal
 import ephem
+import traceback
 from collections import defaultdict
 
 running = True
@@ -44,8 +45,9 @@ def influxdb_writer(q, influxdb_client):
         time_precision="ms",
         batch_size=200,
       )
-    except influxdb.exceptions.InfluxDBServerError as e:
-      print(e)
+    except:
+      # ignore any writing error, just print it and continue
+      print(traceback.format_exc())
 
     q.task_done()
     time.sleep(1)

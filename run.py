@@ -88,6 +88,7 @@ def main(config_filename, *args):
       uavcan.thirdparty.homeautomation.HeaterStatus,
       uavcan.thirdparty.homeautomation.BathroomStatus,
       uavcan.thirdparty.homeautomation.BoilerStatus,
+      uavcan.thirdparty.homeautomation.Motion,
   ]
 
   for uavcan_type in uavcan_types:

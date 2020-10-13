@@ -64,6 +64,7 @@ def main(config_filename, *args):
       config.get('influxdb', 'username'),
       config.get('influxdb', 'password'),
       config.get('influxdb', 'database'),
+      config.getboolean('influxdb', 'ssl'),
       timeout=5,
       retries=5,
   )

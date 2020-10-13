@@ -65,10 +65,11 @@ def main(config_filename, *args):
       config.get('influxdb', 'password'),
       config.get('influxdb', 'database'),
       config.getboolean('influxdb', 'ssl'),
+      verify_ssl=True,
       timeout=5,
       retries=5,
   )
-  influxdb_client.create_database(config.get('influxdb', 'database'))
+  #influxdb_client.create_database(config.get('influxdb', 'database'))
 
   node_info = uavcan.protocol.GetNodeInfo.Response()
   node_info.name = config.get('node', 'name')
